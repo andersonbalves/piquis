@@ -3,14 +3,19 @@ package com.baratella.piquis.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Data
-@Builder
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class Cliente {
 
   @Id
@@ -29,4 +34,9 @@ public class Cliente {
   @Column(name = "saldo")
   @Setter(lombok.AccessLevel.NONE)
   private BigDecimal saldo;
+
+  @Version
+  @Column(name = "version")
+  private Long version;
+
 }
