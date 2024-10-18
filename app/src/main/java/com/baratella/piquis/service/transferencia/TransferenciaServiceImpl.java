@@ -9,12 +9,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class TransferenciaServiceImpl implements TransferenciaService {
+
+  @Value("${app.transferencia.min:0}")
+  private int minTransferencia;
+  @Value("${app.transferencia.max:10000}")
+  private int maxTransferencia;
 
   private final HistoricoTransferencia historicoTransferencia;
 
@@ -23,11 +29,13 @@ public class TransferenciaServiceImpl implements TransferenciaService {
   @Override
   @Transactional
   public ComprovanteTransferenciaDTO efetuarTransferencia(TransferenciaDTO transferencia) {
-    if (transferencia.valor().compareTo(new BigDecimal(0)) <= 0) {
-      throw new IllegalArgumentException("Valor de transferência deve ser maior que zero.");
+    if (transferencia.valor().compareTo(new BigDecimal(minTransferencia)) <= 0) {
+      throw new IllegalArgumentException(
+          String.format("Valor de transferência deve ser menor que R$ %s,00.", minTransferencia));
     }
-    if (transferencia.valor().compareTo(new BigDecimal(10000)) > 0) {
-      throw new IllegalArgumentException("Valor máximo de transferência é R$ 10.000,00.");
+    if (transferencia.valor().compareTo(new BigDecimal(maxTransferencia)) > 0) {
+      throw new IllegalArgumentException(
+          String.format("Valor de transferência deve ser menor que R$ %s,00.", maxTransferencia));
     }
     var origem = clienteRepository.findByNumeroConta(transferencia.contaOrigem())
         .orElseThrow(() -> new IllegalArgumentException("Conta de origem não encontrada."));
@@ -41,17 +49,24 @@ public class TransferenciaServiceImpl implements TransferenciaService {
         .saldo(destino.getSaldo().add(transferencia.valor()))
         .build());
 
-    return ComprovanteTransferenciaDTO.builder()
+    var response = ComprovanteTransferenciaDTO.builder()
         .dataHoraTransferencia(LocalDateTime.now())
         .comprovante(UUID.randomUUID().toString())
         .contaOrigem(origem.getNumeroConta())
         .contaDestino(destino.getNumeroConta())
         .valorTransferido(transferencia.valor())
         .build();
+    historicoTransferencia.salvarTransferencia(response);
+    return response;
   }
 
   @Override
   public List<ComprovanteTransferenciaDTO> listarTransferencias(String numeroConta) {
-    return null;
+    if (clienteRepository.findByNumeroConta(numeroConta).isEmpty()) {
+      throw new IllegalArgumentException("Conta não encontrada.");
+    }
+    return historicoTransferencia.listarTransferencias(numeroConta).orElseThrow(
+        () -> new IllegalArgumentException("Nenhuma transferência encontrada para a conta.")
+    );
   }
 }

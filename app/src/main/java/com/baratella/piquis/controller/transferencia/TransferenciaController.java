@@ -29,6 +29,6 @@ public class TransferenciaController {
   @GetMapping(params = "numeroConta")
   ResponseEntity<List<ComprovanteTransferenciaDTO>> listarTransferencias(
       @RequestParam("numeroConta") String numeroConta) {
-    return null;
+    return ResponseEntity.ok(transferenciaService.listarTransferencias(numeroConta));
   }
 }
