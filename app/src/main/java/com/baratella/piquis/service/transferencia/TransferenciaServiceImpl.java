@@ -3,6 +3,8 @@ package com.baratella.piquis.service.transferencia;
 import com.baratella.piquis.adapter.dynamodb.transferencia.HistoricoTransferencia;
 import com.baratella.piquis.dto.ComprovanteTransferenciaDTO;
 import com.baratella.piquis.dto.TransferenciaDTO;
+import com.baratella.piquis.exception.InvalidParameterException;
+import com.baratella.piquis.exception.NotFoundException;
 import com.baratella.piquis.repository.ClienteRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,18 +31,18 @@ public class TransferenciaServiceImpl implements TransferenciaService {
   @Override
   @Transactional
   public ComprovanteTransferenciaDTO efetuarTransferencia(TransferenciaDTO transferencia) {
-    if (transferencia.valor().compareTo(new BigDecimal(minTransferencia)) <= 0) {
-      throw new IllegalArgumentException(
-          String.format("Valor de transferência deve ser menor que R$ %s,00.", minTransferencia));
+    if (transferencia.valor().compareTo(new BigDecimal(minTransferencia)) <= 0
+        || transferencia.valor().compareTo(new BigDecimal(maxTransferencia)) > 0) {
+      throw new InvalidParameterException(
+          String.format("Valor de transferência ser entre R$ %s,00 e R$ %s,00.", minTransferencia,
+              maxTransferencia),
+          "valor");
     }
-    if (transferencia.valor().compareTo(new BigDecimal(maxTransferencia)) > 0) {
-      throw new IllegalArgumentException(
-          String.format("Valor de transferência deve ser menor que R$ %s,00.", maxTransferencia));
-    }
+
     var origem = clienteRepository.findByNumeroConta(transferencia.contaOrigem())
-        .orElseThrow(() -> new IllegalArgumentException("Conta de origem não encontrada."));
+        .orElseThrow(() -> new NotFoundException("Conta de origem não encontrada."));
     var destino = clienteRepository.findByNumeroConta(transferencia.contaDestino())
-        .orElseThrow(() -> new IllegalArgumentException("Conta de destino não encontrada."));
+        .orElseThrow(() -> new NotFoundException("Conta de destino não encontrada."));
 
     clienteRepository.save(origem.toBuilder()
         .saldo(origem.getSaldo().subtract(transferencia.valor()))
@@ -63,10 +65,11 @@ public class TransferenciaServiceImpl implements TransferenciaService {
   @Override
   public List<ComprovanteTransferenciaDTO> listarTransferencias(String numeroConta) {
     if (clienteRepository.findByNumeroConta(numeroConta).isEmpty()) {
-      throw new IllegalArgumentException("Conta não encontrada.");
+      throw new NotFoundException("Conta não encontrada.");
     }
     return historicoTransferencia.listarTransferencias(numeroConta).orElseThrow(
-        () -> new IllegalArgumentException("Nenhuma transferência encontrada para a conta.")
+        () -> new NotFoundException(
+            "Nenhuma transferência encontrada para a conta.")
     );
   }
 }

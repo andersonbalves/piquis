@@ -1,6 +1,7 @@
 package com.baratella.piquis.service.cliente;
 
 import com.baratella.piquis.dto.ClienteDTO;
+import com.baratella.piquis.exception.NotFoundException;
 import com.baratella.piquis.model.Cliente;
 import com.baratella.piquis.repository.ClienteRepository;
 import java.util.List;
@@ -55,6 +56,6 @@ public class ClienteServiceImpl implements ClienteService {
             .numeroConta(cliente.getNumeroConta())
             .saldoConta(cliente.getSaldo())
             .build())
-        .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado."));
+        .orElseThrow(() -> new NotFoundException("Cliente não encontrado."));
   }
 }

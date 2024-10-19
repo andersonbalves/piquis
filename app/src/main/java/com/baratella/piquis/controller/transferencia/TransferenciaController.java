@@ -3,6 +3,8 @@ package com.baratella.piquis.controller.transferencia;
 import com.baratella.piquis.dto.ComprovanteTransferenciaDTO;
 import com.baratella.piquis.dto.TransferenciaDTO;
 import com.baratella.piquis.service.transferencia.TransferenciaService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +24,16 @@ public class TransferenciaController {
 
   @PostMapping
   ResponseEntity<ComprovanteTransferenciaDTO> transferirEntreContas(
-      @RequestBody TransferenciaDTO transferencia) {
+      @Valid @RequestBody TransferenciaDTO transferencia) {
     return ResponseEntity.ok(transferenciaService.efetuarTransferencia(transferencia));
   }
 
   @GetMapping(params = "numeroConta")
   ResponseEntity<List<ComprovanteTransferenciaDTO>> listarTransferencias(
-      @RequestParam("numeroConta") String numeroConta) {
+      @Valid
+      @RequestParam("numeroConta")
+      @NotBlank(message = "Número da conta não pode ser vazio.")
+      String numeroConta) {
     return ResponseEntity.ok(transferenciaService.listarTransferencias(numeroConta));
   }
 }

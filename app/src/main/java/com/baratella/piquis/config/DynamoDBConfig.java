@@ -1,4 +1,4 @@
-package com.baratella.piquis.config.dynamodb;
+package com.baratella.piquis.config;
 
 
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;

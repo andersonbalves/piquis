@@ -54,7 +54,7 @@ public class HistoricoTransferenciaImpl implements HistoricoTransferencia {
         .keyConditionExpression("contaOrigem = :conta")
         .expressionAttributeValues(
             Map.of(":conta", AttributeValue.builder().s(numeroConta).build()))
-        .scanIndexForward(false) // Ordena em ordem decrescente
+        .scanIndexForward(false)
         .build();
 
     var queryRequestDestino = QueryRequest.builder()
@@ -63,7 +63,7 @@ public class HistoricoTransferenciaImpl implements HistoricoTransferencia {
         .keyConditionExpression("contaDestino = :conta")
         .expressionAttributeValues(
             Map.of(":conta", AttributeValue.builder().s(numeroConta).build()))
-        .scanIndexForward(false) // Ordena em ordem decrescente
+        .scanIndexForward(false)
         .build();
 
     var resultOrigem = dynamoDBClient.query(queryRequestOrigem);
