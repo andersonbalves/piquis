@@ -1,13 +1,12 @@
 # language: pt
 
-Funcionalidade: Cadastrar Cliente
+Funcionalidade: Consultar Cliente
 
   Cenario: Consultar todos clientes cadastrados
     Dado que tenho clientes cadastrados
     Quando consulto todos os clientes
     Entao os clientes devem ser encontrados com sucesso
     E a resposta deve conter todos os clientes cadastrados
-
 
   Delineação do Cenário: Consultar um cliente por conta
     Dado que eu tenho os dados do cliente

@@ -6,13 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.baratella.piquis.PiquisApplication;
 import com.baratella.piquis.dto.ClienteDTO;
+import com.baratella.piquis.dto.ComprovanteTransferenciaDTO;
 import com.baratella.piquis.dto.ErrorResponseDTO;
+import com.baratella.piquis.dto.TransferenciaDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.pt.Dado;
 import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 import io.cucumber.spring.CucumberContextConfiguration;
+import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,24 +35,33 @@ import org.springframework.http.ResponseEntity;
 @CucumberContextConfiguration
 @SpringBootTest(classes = PiquisApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Slf4j
-public class ClienteSteps {
+public class PiquisSteps {
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
   @Autowired
   private TestRestTemplate restTemplate;
 
   private ClienteDTO cliente;
   private final List<ClienteDTO> clientesCadastrados = new ArrayList<>();
   private ResponseEntity<Object> response;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  private TransferenciaDTO transferencia;
+
+  @PostConstruct
+  public void init() {
+    objectMapper.registerModule(new JavaTimeModule());
+  }
 
   @Dado("que eu tenho os dados do cliente")
+  @Dado("que eu tenho os dados do cliente da conta de origem")
+  @Dado("que eu tenho os dados do cliente da conta de destino")
   public void queEuTenhoOsDadosDoCliente(DataTable dataTable) {
     Map<String, String> data = dataTable.asMaps().getFirst();
     cliente = ClienteDTO.builder()
         .idCliente(tratarCampoString(data.get("idCliente")))
         .nomeCliente(tratarCampoString(data.get("nomeCliente")))
         .numeroConta(tratarCampoString(data.get("numeroConta")))
-        .saldoConta(data.get("saldoConta").equals("null") ? null
+        .saldoConta("null".equals(data.get("saldoConta")) ? null
             : BigDecimal.valueOf(Double.parseDouble(data.get("saldoConta"))))
         .build();
   }
@@ -120,6 +133,7 @@ public class ClienteSteps {
 
   @Entao("o cliente deve ser encontrado com sucesso")
   @Entao("os clientes devem ser encontrados com sucesso")
+  @Entao("a transferência deve ser efetuada com sucesso")
   public void oClienteDeveSerEncontradoComSucesso() {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
@@ -145,6 +159,7 @@ public class ClienteSteps {
 
   @Entao("o cliente não deve ser cadastrado")
   @Entao("o cliente NÃO deve ser encontrado")
+  @Entao("a transferência NÃO deve ser efetuada com sucesso")
   public void oClienteNaoDeveSerCadastrado() {
     assertNotEquals(HttpStatus.OK, response.getStatusCode());
     assertNotEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -181,7 +196,38 @@ public class ClienteSteps {
     assertEquals(campoInvalido, responseBody.errors().getFirst().field());
   }
 
+  @Dado("que eu tenho os dados da transferência")
+  public void queEuTenhoOsDadosDaTransferencia(DataTable dataTable) {
+    Map<String, String> data = dataTable.asMaps().get(0);
+    transferencia = TransferenciaDTO.builder()
+        .contaOrigem(tratarCampoString(data.get("contaOrigem")))
+        .contaDestino(tratarCampoString(data.get("contaDestino")))
+        .valor("null".equals(data.get("valor")) ? null
+            : BigDecimal.valueOf(Double.parseDouble(data.get("valor"))))
+        .build();
+  }
+
+  @Quando("eu envio uma requisição para efetuar a transferência")
+  public void euEnvioUmaRequisicaoParaEfetuarATransferencia() {
+    HttpHeaders headers = new HttpHeaders();
+    HttpEntity<TransferenciaDTO> request = new HttpEntity<>(transferencia, headers);
+    response = restTemplate.exchange("/api/v1/transferencias", HttpMethod.POST, request,
+        Object.class);
+  }
+
+
+  @Entao("a resposta deve conter os dados da transferência")
+  public void aRespostaDeveConterOsDadosDaTransferencia() {
+    assertNotNull(response.getBody());
+    var responseBody = objectMapper.convertValue(response.getBody(),
+        ComprovanteTransferenciaDTO.class);
+    assertEquals(transferencia.contaOrigem(), responseBody.contaOrigem());
+    assertEquals(transferencia.contaDestino(), responseBody.contaDestino());
+    assertEquals(0, responseBody.valorTransferido().compareTo(transferencia.valor()));
+  }
+
   private String tratarCampoString(String campo) {
     return "null".equalsIgnoreCase(campo) ? null : "empty".equalsIgnoreCase(campo) ? "" : campo;
   }
+
 }
