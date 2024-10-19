@@ -9,5 +9,4 @@ public class PiquisApplication {
   public static void main(String[] args) {
     SpringApplication.run(PiquisApplication.class, args);
   }
-
 }
