@@ -32,8 +32,8 @@ public class TransferenciaServiceImpl implements TransferenciaService {
   @Override
   @Transactional
   public ComprovanteTransferenciaDTO efetuarTransferencia(TransferenciaDTO transferencia) {
-    if (transferencia.valor().compareTo(new BigDecimal(minTransferencia)) <= 0
-        || transferencia.valor().compareTo(new BigDecimal(maxTransferencia)) > 0) {
+    if (transferencia.valor().compareTo(BigDecimal.valueOf(minTransferencia)) <= 0
+        || transferencia.valor().compareTo(BigDecimal.valueOf(maxTransferencia)) > 0) {
       throw new InvalidParameterException(
           String.format("Valor de transferência ser entre R$ %s,00 e R$ %s,00.", minTransferencia,
               maxTransferencia),

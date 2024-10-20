@@ -1,5 +1,6 @@
 package com.baratella.piquis.e2e.steps;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -145,7 +146,9 @@ public class PiquisSteps {
       assertEquals(expected.idCliente(), item.idCliente());
       assertEquals(expected.nomeCliente(), item.nomeCliente());
       assertEquals(expected.numeroConta(), item.numeroConta());
-      assertEquals(0, expected.saldoConta().compareTo(item.saldoConta()));
+      assertThat(expected.saldoConta())
+          .usingComparator(BigDecimal::compareTo)
+          .isEqualTo(item.saldoConta());
     });
   }
 
@@ -165,7 +168,9 @@ public class PiquisSteps {
     assertEquals(cliente.idCliente(), responseBody.idCliente());
     assertEquals(cliente.nomeCliente(), responseBody.nomeCliente());
     assertEquals(cliente.numeroConta(), responseBody.numeroConta());
-    assertEquals(0, responseBody.saldoConta().compareTo(cliente.saldoConta()));
+    assertThat(cliente.saldoConta())
+        .usingComparator(BigDecimal::compareTo)
+        .isEqualTo(responseBody.saldoConta());
   }
 
   @Entao("a resposta deve conter o erro {string} e mensagem {string}")
@@ -242,7 +247,9 @@ public class PiquisSteps {
         ComprovanteTransferenciaDTO.class);
     assertEquals(transferencia.contaOrigem(), responseBody.contaOrigem());
     assertEquals(transferencia.contaDestino(), responseBody.contaDestino());
-    assertEquals(0, responseBody.valorTransferido().compareTo(transferencia.valor()));
+    assertThat(transferencia.valor())
+        .usingComparator(BigDecimal::compareTo)
+        .isEqualTo(responseBody.valorTransferido());
   }
 
 
@@ -262,9 +269,11 @@ public class PiquisSteps {
       assertNotNull(actual, String.format("Transferência não encontrada: %s", expected));
       assertEquals(expected.contaOrigem(), actual.contaOrigem());
       assertEquals(expected.contaDestino(), actual.contaDestino());
-      assertEquals(0, expected.valorTransferido().compareTo(
-          actual.contaDestino().equals(contaConsultaTransferencia) ? actual.valorTransferido()
-              : actual.valorTransferido().negate()));
+      assertThat(expected.valorTransferido())
+          .usingComparator(BigDecimal::compareTo)
+          .isEqualTo(
+              actual.contaDestino().equals(contaConsultaTransferencia) ? actual.valorTransferido()
+                  : actual.valorTransferido().negate());
       assertEquals(expected.comprovante(), actual.comprovante());
       assertEquals(expected.dataHoraTransferencia(), actual.dataHoraTransferencia());
     });
