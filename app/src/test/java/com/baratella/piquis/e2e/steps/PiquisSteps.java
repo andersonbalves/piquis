@@ -134,6 +134,7 @@ public class PiquisSteps {
   @Entao("o cliente deve ser encontrado com sucesso")
   @Entao("os clientes devem ser encontrados com sucesso")
   @Entao("a transferência deve ser efetuada com sucesso")
+  @Entao("as transferências devem ser encontradas com sucesso")
   public void oClienteDeveSerEncontradoComSucesso() {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
@@ -207,12 +208,22 @@ public class PiquisSteps {
         .build();
   }
 
+
   @Quando("eu envio uma requisição para efetuar a transferência")
+  @Dado("que a transferência já foi efetuada")
   public void euEnvioUmaRequisicaoParaEfetuarATransferencia() {
     HttpHeaders headers = new HttpHeaders();
     HttpEntity<TransferenciaDTO> request = new HttpEntity<>(transferencia, headers);
     response = restTemplate.exchange("/api/v1/transferencias", HttpMethod.POST, request,
         Object.class);
+  }
+
+  @Quando("consulto as transferências da conta {string}")
+  public void consultoAsTransferenciasDaConta(String numeroConta) {
+    HttpHeaders headers = new HttpHeaders();
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+    response = restTemplate.exchange("/api/v1/transferencias?numeroConta=" + numeroConta,
+        HttpMethod.GET, request, Object.class);
   }
 
 
@@ -224,6 +235,26 @@ public class PiquisSteps {
     assertEquals(transferencia.contaOrigem(), responseBody.contaOrigem());
     assertEquals(transferencia.contaDestino(), responseBody.contaDestino());
     assertEquals(0, responseBody.valorTransferido().compareTo(transferencia.valor()));
+  }
+
+
+  @Entao("a resposta deve conter os dados de todas as transferências")
+  public void aRespostaDeveConterOsDadosDasTransferencias() {
+    assertNotNull(response.getBody());
+    List<ComprovanteTransferenciaDTO> responseBody =
+        objectMapper.convertValue(response.getBody(), List.class).stream()
+            .map(obj -> objectMapper.convertValue(obj, ComprovanteTransferenciaDTO.class)).toList();
+    assertNotNull(responseBody);
+    var transferenciaResponse = responseBody.getFirst();
+    assertEquals(transferencia.contaOrigem(), transferenciaResponse.contaOrigem());
+    assertEquals(transferencia.contaDestino(), transferenciaResponse.contaDestino());
+    assertEquals(0,
+        transferenciaResponse.valorTransferido().compareTo(transferencia.valor().negate()));
+  }
+
+  @Entao("as transferências NÃO devem ser encontradas")
+  public void asTransferenciasNaoDevemSerEncontradas() {
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
   }
 
   private String tratarCampoString(String campo) {
