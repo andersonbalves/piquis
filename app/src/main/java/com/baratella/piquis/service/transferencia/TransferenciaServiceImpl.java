@@ -8,6 +8,7 @@ import com.baratella.piquis.exception.NotFoundException;
 import com.baratella.piquis.repository.ClienteRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -67,9 +68,6 @@ public class TransferenciaServiceImpl implements TransferenciaService {
     if (clienteRepository.findByNumeroConta(numeroConta).isEmpty()) {
       throw new NotFoundException("Conta não encontrada.");
     }
-    return historicoTransferencia.listarTransferencias(numeroConta).orElseThrow(
-        () -> new NotFoundException(
-            "Nenhuma transferência encontrada para a conta.")
-    );
+    return historicoTransferencia.listarTransferencias(numeroConta).orElse(Collections.emptyList());
   }
 }
