@@ -133,6 +133,7 @@ public class PiquisSteps {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 
+  @SuppressWarnings("unchecked")
   @Entao("a resposta deve conter todos os clientes cadastrados")
   public void aRespostaDeveConterTodosOsClientesCadastrados() {
     assertNotNull(response.getBody());
@@ -196,7 +197,7 @@ public class PiquisSteps {
 
   @Dado("que eu tenho os dados da transferência")
   public void queEuTenhoOsDadosDaTransferencia(DataTable dataTable) {
-    Map<String, String> data = dataTable.asMaps().get(0);
+    Map<String, String> data = dataTable.asMaps().getFirst();
     transferencia = TransferenciaDTO.builder()
         .contaOrigem(tratarCampoString(data.get("contaOrigem")))
         .contaDestino(tratarCampoString(data.get("contaDestino"))).valor(
@@ -253,6 +254,7 @@ public class PiquisSteps {
   }
 
 
+  @SuppressWarnings("unchecked")
   @Entao("a resposta deve conter os dados de todas as transferências")
   public void aRespostaDeveConterOsDadosDasTransferencias() {
     assertNotNull(response.getBody());
@@ -279,6 +281,7 @@ public class PiquisSteps {
     });
   }
 
+  @SuppressWarnings("unchecked")
   @Entao("a resposta deve ser uma lista vazia")
   public void aRespostaDeveSerUmaListaVazia() {
     assertNotNull(response.getBody());
