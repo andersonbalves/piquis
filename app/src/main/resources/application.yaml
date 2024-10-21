@@ -1,0 +1,35 @@
+app:
+  tranferencia:
+    min: 0
+    max: 10000
+spring:
+  application:
+    name: piquis
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+    platform: h2
+    initialization-mode: always
+    schema: classpath:schema.sql
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+aws:
+  accessKeyId: fakeMyKeyId
+  secretKey: fakeSecretAccessKey
+  region: sa-east-1
+  dynamodb:
+    endpoint: http://localhost:8000
+    table: transferencias
+
